@@ -243,6 +243,7 @@ def nyt_feature_engineer(df, df_weights):
         else: 
             clean_keyword.append(keyword)
 
+
     df_out['clean_keyword'] = clean_keyword
 
     ## weighting
@@ -398,6 +399,13 @@ def nyt_feature_engineer(df, df_weights):
 
     nyt_daily = df_out.groupby('date').mean()[['pos_score', 'neg_score', 'neu_score', 'pos_weighted', 'neg_weighted', 'neu_weighted']].sort_index()
 
+    # impute NA values using mean of last 3 days
+    null_idx = nyt_daily[nyt_daily.isnull().any(axis=1)].index
+    score_cols = ['pos_score', 'neg_score', 'neu_score', 'pos_weighted','neg_weighted','neu_weighted']
+    for i in null_idx:
+        for col in score_cols:
+            nyt_daily.at[i,col] = (nyt_daily.at[i-1,col]+nyt_daily.at[i-2,col]+nyt_daily.at[i-3,col])/3
+            
     return nyt_daily
         
 
