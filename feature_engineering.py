@@ -402,7 +402,7 @@ def nyt_feature_engineer(df, df_weights):
     nyt_daily = nyt_daily.set_index('date')
     nyt_scores = nyt_scores.reindex(pd.date_range(start="2016-01-01", end="2022-09-01"))
     nyt_scores['date'] = nyt_scores.index
-    nyt_scores = nyt_scores.reset_index()
+    nyt_scores = nyt_scores.reset_index(drop = True)
 
     # impute NA values using mean of last 3 days
     null_idx = nyt_daily[nyt_daily.isnull().any(axis=1)].index
