@@ -6,6 +6,7 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import ast
 
 def get_growth(df):
     '''
