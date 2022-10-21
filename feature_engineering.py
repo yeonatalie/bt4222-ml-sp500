@@ -26,6 +26,7 @@ def create_target(threshold):
         else:
             decisions.append("HOLD")
     diff_7d['decision'] = decisions
+    diff_7d = diff_7d['2016-01-04':]
     return diff_7d
 
 
