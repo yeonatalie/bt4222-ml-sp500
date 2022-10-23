@@ -49,7 +49,7 @@ def macro_imputation(df):
     '''
     Helper function for macro_feature_engineer method
     '''
-    df = df[df['Date'] <= '2022-09'].set_index('Date')
+    df = df.loc[:'2022-09']
     df.index = pd.date_range(start='2016-01-01', end='2022-09-01', freq="MS")
     df = df.reindex(pd.date_range(start='2016-01-01', end='2022-09-01', freq="D")).fillna(method='ffill')
     return df
@@ -69,10 +69,11 @@ def macro_feature_engineer(df, normalize=False, scaler_type="standard", data_typ
     ======
     pd.DataFrame after feature engineering
     '''
+    df = df.set_index("Date")
     if normalize:
         scaler = StandardScaler() if scaler_type=="standard" else MinMaxScaler()
-        train_scaled = scaler.fit_transform(df.loc[:'2022-01-01'])
-        test_scaled = scaler.transform(df.loc['2022-01-01':])
+        train_scaled = scaler.fit_transform(df.loc[:'2021-12'])
+        test_scaled = scaler.transform(df.loc['2022-01':])
         df_scaled = pd.DataFrame(np.vstack([train_scaled, test_scaled]))
         df_scaled.columns = df.columns
         df_scaled.index = df.index
