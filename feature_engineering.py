@@ -1,12 +1,34 @@
 import pandas as pd
 import numpy as np
 import datetime
+import yfinance as yf
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import ast
+
+def create_target(threshold):
+    '''
+    Create target column based on threshold
+    '''
+    data = yf.download("^GSPC", start="2015-12-20", end="2022-09-02")
+    data_lag_7d = data.shift(7)
+    diff_7d = (data[['Adj Close']] - data_lag_7d[['Adj Close']])/data_lag_7d[['Adj Close']]
+    diff_7d = diff_7d[diff_7d['Adj Close'].notnull()]
+    decisions = []
+    for i in range(len(diff_7d)):
+        if diff_7d.iloc[i]['Adj Close'] > threshold:
+            decisions.append("BUY")
+        elif diff_7d.iloc[i]['Adj Close'] < -threshold:
+            decisions.append("SELL")
+        else:
+            decisions.append("HOLD")
+    diff_7d['decision'] = decisions
+    diff_7d = diff_7d['2016-01-04':]
+    return diff_7d
+
 
 def get_growth(df):
     '''
