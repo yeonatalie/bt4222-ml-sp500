@@ -14,7 +14,7 @@ def create_target(threshold):
     Create target column based on threshold
     '''
     data = yf.download("^GSPC", start="2015-12-20", end="2022-09-02")
-    data_lag_7d = data.shift(7)
+    data_lag_7d = data.shift(1)
     diff_7d = (data[['Adj Close']] - data_lag_7d[['Adj Close']])/data_lag_7d[['Adj Close']]
     diff_7d = diff_7d[diff_7d['Adj Close'].notnull()]
     decisions = []
