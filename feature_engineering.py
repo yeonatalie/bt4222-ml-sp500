@@ -1,12 +1,34 @@
 import pandas as pd
 import numpy as np
 import datetime
+import yfinance as yf
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 import ast
+
+def create_target(threshold):
+    '''
+    Create target column based on threshold
+    '''
+    data = yf.download("^GSPC", start="2015-12-20", end="2022-09-02")
+    data_lag_7d = data.shift(7)
+    diff_7d = (data[['Adj Close']] - data_lag_7d[['Adj Close']])/data_lag_7d[['Adj Close']]
+    diff_7d = diff_7d[diff_7d['Adj Close'].notnull()]
+    decisions = []
+    for i in range(len(diff_7d)):
+        if diff_7d.iloc[i]['Adj Close'] > threshold:
+            decisions.append("BUY")
+        elif diff_7d.iloc[i]['Adj Close'] < -threshold:
+            decisions.append("SELL")
+        else:
+            decisions.append("HOLD")
+    diff_7d['decision'] = decisions
+    diff_7d = diff_7d['2016-01-04':]
+    return diff_7d
+
 
 def get_growth(df):
     '''
@@ -27,7 +49,7 @@ def macro_imputation(df):
     '''
     Helper function for macro_feature_engineer method
     '''
-    df = df[df['Date'] <= '2022-09'].set_index('Date')
+    df = df.loc[:'2022-09']
     df.index = pd.date_range(start='2016-01-01', end='2022-09-01', freq="MS")
     df = df.reindex(pd.date_range(start='2016-01-01', end='2022-09-01', freq="D")).fillna(method='ffill')
     return df
@@ -47,10 +69,11 @@ def macro_feature_engineer(df, normalize=False, scaler_type="standard", data_typ
     ======
     pd.DataFrame after feature engineering
     '''
+    df = df.set_index("Date")
     if normalize:
         scaler = StandardScaler() if scaler_type=="standard" else MinMaxScaler()
-        train_scaled = scaler.fit_transform(df.loc[:'2022-01-01'])
-        test_scaled = scaler.transform(df.loc['2022-01-01':])
+        train_scaled = scaler.fit_transform(df.loc[:'2021-12'])
+        test_scaled = scaler.transform(df.loc['2022-01':])
         df_scaled = pd.DataFrame(np.vstack([train_scaled, test_scaled]))
         df_scaled.columns = df.columns
         df_scaled.index = df.index
@@ -399,13 +422,21 @@ def nyt_feature_engineer(df, df_weights):
 
     nyt_daily = df_out.groupby('date').mean()[['pos_score', 'neg_score', 'neu_score', 'pos_weighted', 'neg_weighted', 'neu_weighted']].sort_index()
 
+    nyt_daily = nyt_daily.reindex(pd.date_range(start="2016-01-01", end="2022-09-01"))
+
+    nyt_daily = nyt_daily.reset_index()
+    nyt_daily = nyt_daily.rename(columns={'index':'date'})
+
     # impute NA values using mean of last 3 days
     null_idx = nyt_daily[nyt_daily.isnull().any(axis=1)].index
     score_cols = ['pos_score', 'neg_score', 'neu_score', 'pos_weighted','neg_weighted','neu_weighted']
     for i in null_idx:
         for col in score_cols:
             nyt_daily.at[i,col] = (nyt_daily.at[i-1,col]+nyt_daily.at[i-2,col]+nyt_daily.at[i-3,col])/3
-            
+
+    nyt_daily = nyt_daily.set_index(nyt_daily['date'])
+    nyt_daily = nyt_daily.iloc[: , 1:]   
+
     return nyt_daily
         
 
