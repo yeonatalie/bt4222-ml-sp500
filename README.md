@@ -52,5 +52,5 @@ Different models using the best configuration and features were trained and test
 ## Authors
 * Chloe Wang Jia Qi - [chloewang10](https://github.com/chloewang10)
 * Lam Pei Shi - [pspeishi](https://github.com/pspeishi)
-* Yeo Hwee Kit, Sabrina - [yeonatalie](https://github.com/yeonatalie)
-* Yeo Xiu Ying, Natalie - [sabyeo](https://github.com/sabyeo)
+* Yeo Hwee Kit, Sabrina - [sabyeo](https://github.com/sabyeo)
+* Yeo Xiu Ying, Natalie - [yeonatalie](https://github.com/yeonatalie)
